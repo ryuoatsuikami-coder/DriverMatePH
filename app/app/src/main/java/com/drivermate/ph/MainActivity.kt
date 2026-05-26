@@ -1,167 +1,101 @@
 package com.drivermate.ph
 
+import android.app.Activity
 import android.content.Intent
+import android.graphics.Color
+import android.os.Bundle
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import android.view.Gravity
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
 import java.util.Locale
 
-class MainActivity : ComponentActivity() {
+class MainActivity : Activity() {
 
     private var tts: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        tts = TextToSpeech(this) {
-            if (it == TextToSpeech.SUCCESS) {
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
                 tts?.language = Locale("en", "PH")
+                tts?.setSpeechRate(0.95f)
             }
         }
 
-        setContent {
-            DriverMateHome(
-                onOpenNotificationSettings = {
-                    startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-                },
-                onTestVoice = {
-                    tts?.speak(
-                        "DriverMate PH is ready. Preferred booking alerts will be read aloud.",
-                        TextToSpeech.QUEUE_FLUSH,
-                        null,
-                        "test_voice"
-                    )
-                }
-            )
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(40, 80, 40, 40)
+            setBackgroundColor(Color.rgb(15, 23, 42))
         }
+
+        val title = TextView(this).apply {
+            text = "DriverMate PH"
+            textSize = 30f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+        }
+
+        val subtitle = TextView(this).apply {
+            text = "Smart booking voice alerts for drivers"
+            textSize = 16f
+            setTextColor(Color.LTGRAY)
+            gravity = Gravity.CENTER
+            setPadding(0, 12, 0, 40)
+        }
+
+        val instruction = TextView(this).apply {
+            text = "Allow Notification Access so DriverMate PH can read booking notifications aloud."
+            textSize = 16f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 24)
+        }
+
+        val allowButton = Button(this).apply {
+            text = "Allow Notification Access"
+            setOnClickListener {
+                startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            }
+        }
+
+        val testButton = Button(this).apply {
+            text = "Test Voice Alert"
+            setOnClickListener {
+                tts?.speak(
+                    "DriverMate PH is working. Booking alerts will be read aloud.",
+                    TextToSpeech.QUEUE_FLUSH,
+                    null,
+                    "driver_mate_test"
+                )
+            }
+        }
+
+        val footer = TextView(this).apply {
+            text = "Version 1.0.4"
+            textSize = 12f
+            setTextColor(Color.GRAY)
+            gravity = Gravity.CENTER
+            setPadding(0, 40, 0, 0)
+        }
+
+        layout.addView(title)
+        layout.addView(subtitle)
+        layout.addView(instruction)
+        layout.addView(allowButton)
+        layout.addView(testButton)
+        layout.addView(footer)
+
+        setContentView(layout)
     }
 
     override fun onDestroy() {
         tts?.stop()
         tts?.shutdown()
         super.onDestroy()
-    }
-}
-
-@Composable
-fun DriverMateHome(
-    onOpenNotificationSettings: () -> Unit,
-    onTestVoice: () -> Unit
-) {
-    val darkBg = Color(0xFF0F172A)
-    val cardBg = Color(0xFF1E293B)
-    val green = Color(0xFF22C55E)
-    val yellow = Color(0xFFFACC15)
-
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = darkBg
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(
-                    text = "DriverMate PH",
-                    color = Color.White,
-                    style = MaterialTheme.typography.headlineMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Smarter trips. Better earnings.",
-                    color = Color.LightGray,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = cardBg),
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(18.dp)) {
-                        Text(
-                            text = "Setup Required",
-                            color = yellow,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Allow notification access so DriverMate can read booking alerts from your driver apps.",
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = onOpenNotificationSettings,
-                            colors = ButtonDefaults.buttonColors(containerColor = green),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Allow Notification Access", color = Color.Black)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = cardBg),
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(18.dp)) {
-                        Text(
-                            text = "Voice Alert Test",
-                            color = green,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Test if your phone can speak booking alerts clearly.",
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        OutlinedButton(
-                            onClick = onTestVoice,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Test Voice Alert", color = Color.White)
-                        }
-                    }
-                }
-            }
-
-            Text(
-                text = "Version 1.0.0 • Safe notification assistant",
-                color = Color.Gray,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-        }
     }
 }
