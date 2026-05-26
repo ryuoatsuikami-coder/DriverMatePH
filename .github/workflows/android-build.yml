@@ -16,19 +16,23 @@ jobs:
       - name: Download repository manually
         run: |
           git clone https://github.com/${{ github.repository }}.git project
-          cd project
 
-      - name: Set up JDK and Gradle
+      - name: Set up JDK
         run: |
           sudo apt-get update
-          sudo apt-get install -y openjdk-17-jdk gradle
+          sudo apt-get install -y openjdk-17-jdk unzip wget
           java -version
-          gradle -v
+
+      - name: Install Gradle 8.7
+        run: |
+          wget https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip gradle-8.7-bin.zip
+          ./gradle-8.7/bin/gradle -v
 
       - name: Build debug APK
         run: |
           cd project
-          gradle assembleDebug
+          ../gradle-8.7/bin/gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
